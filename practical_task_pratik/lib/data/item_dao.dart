@@ -17,27 +17,17 @@ class ItemDao {
       List<Itemslist> itemList = ApiResultModel.fromJson(data).data.itemslist;
       for (var i in itemList) {
         List<Items> items = i.items;
-        var roomname = i.roomName;
-        var roomid = i.roomId;
         for(var itemCat in items){
-          print("@@@  field name, "+itemCat.cFieldName+" Real Room Name "+roomname+", Model Room Name "+itemCat.roomname);
-          print("@@@ field "+itemCat.toString());
-          print("@@@ field JSON "+itemCat.toJson().toString());
           createItem(itemCat);
         }
       }
       var listFromDb = getRoomName();
-      print("@@@ size : "+listFromDb.toString());
       return listFromDb;
     } else {
       throw Exception();
     }
   }
 
-
-  Future<Void> init() async {
-//    print("@@@ size : "+response.length.toString());
-  }
 
   Future<List<Items>> getItems({List<String> columns, String query}) async {
     final db = await dbProvider.database;
@@ -107,7 +97,6 @@ class ItemDao {
     final db = await dbProvider.database;
     List<Map<String, dynamic>> result;
     String query = "SELECT * FROM Items WHERE room_name LIKE '"+searchkey+"%' AND Items.room_id = "+room_id+" GROUP BY Items.room_id";
-    print("@@@ query "+query);
     result = await db.rawQuery(query);
     List<Items> items = result.isNotEmpty
         ? result.map((item) => Items.fromJson1(item)).toList()
@@ -138,17 +127,6 @@ class ItemDao {
         : [];
     return items;
   }
-
-//  Future<Items> getItem({List<String> columns, int c_id}) async {
-//    final db = await dbProvider.database;
-//
-//    var result = await db.query(table_name, columns: columns, where: 'c_id = ?', whereArgs: [c_id]);
-//
-////    List<Items> users = result.isNotEmpty ? result.map((item) => Items.fromJson(item)).toList() : [];
-////    Items item = users.isNotEmpty ? users[0] : null;
-//
-//    return item;
-//  }
 
   Future<int> createItem(Items item) async {
     final db = await dbProvider.database;

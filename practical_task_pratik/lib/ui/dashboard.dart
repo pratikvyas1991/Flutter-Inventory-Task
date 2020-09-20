@@ -9,6 +9,7 @@ import 'package:practicaltaskpratik/data/api_result_model.dart';
 import 'package:practicaltaskpratik/utility/error_dialogue.dart';
 import 'package:practicaltaskpratik/utility/progress_loading_dialogue.dart';
 import 'package:practicaltaskpratik/res/string_constants.dart';
+import 'dart:io';
 
 class Dashboard extends StatefulWidget {
   @override
@@ -24,6 +25,7 @@ class MyHomePage extends State<Dashboard> {
   String defaultRoomId = "";
   final _formKey = GlobalKey<FormState>();
   List<Items> tempList = new List();
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   @override
   void initState() {
     super.initState();
@@ -32,13 +34,49 @@ class MyHomePage extends State<Dashboard> {
     roomItemBloc = BlocProvider.of<RoomItemBloc>(context);
     carttemBloc = BlocProvider.of<CarttemBloc>(context);
     carttemBloc.add(UpdateRoomItemsEvent());
+    checkConnection();
+  }
 
+  checkConnection() async{
+    try {
+      final result = await InternetAddress.lookup('google.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+//        showSnackBar(Strings.ConnectedToInternet);
+      }else{
+        showSnackBar(Strings.NotConnectedToInternet);
+      }
+    } on SocketException catch (_) {
+      showSnackBar(Strings.NotConnectedToInternet);
+    }
+  }
+
+  showSnackBar(String message){
+    showDialog(
+        context: context,
+        builder: (BuildContext context){
+          return AlertDialog(
+            title: Text(Strings.InternetConnectivity),
+            content: Column(
+              children: [
+                Text(message),
+                RaisedButton(
+                  child: Text(Strings.Continue),
+                  onPressed: (){
+                    Navigator.pop(context);
+                  },
+                )
+              ],
+            ),
+          );
+        }
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Material(
       child: Scaffold(
+        key: _scaffoldKey,
         appBar: AppBar(
           title: Text("Inventory"),
         ),
@@ -307,7 +345,6 @@ class MyHomePage extends State<Dashboard> {
               title: Text(items[pos].roomname),
             ),
             onTap: () {
-              print("@@@ Pressed with value : " + items[pos].roomname);
               setState(() {
                 defaultRoomId = items[pos].roomid;
               });
@@ -436,7 +473,6 @@ class MyHomePage extends State<Dashboard> {
               if (qty == 0) {
                 items[pos].qty = (qty + 1).toString();
               }
-              print("@@@ Pressed with Field Name : " + items[pos].cFieldName);
               carttemBloc.add(UpdateQtyRoomItemsEvent(items[pos]));
               carttemBloc.add(UpdateRoomItemsEvent());
               roomItemBloc.add(FetchRoomItemsEvent(items[pos].roomid));

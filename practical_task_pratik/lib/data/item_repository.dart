@@ -29,5 +29,4 @@ class ItemRepository {
 
   Future getItemsWeb() => itemDao.getItemsWeb();
 
-  Future initItems() => itemDao.init();
 }

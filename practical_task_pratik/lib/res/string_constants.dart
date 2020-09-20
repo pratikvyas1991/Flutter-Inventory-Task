@@ -8,4 +8,10 @@ class Strings {
   static String CalculatedLBS = "Calculated (LBS)";
   static String Rooms = "Rooms";
   static String Items = "Items";
+  static String InternetConnectivity = "Internet Connectivity";
+  static String ConnectedToInternet = "Connected to Internet!";
+  static String NotConnectedToInternet = "Not Connected to Internet!";
+  static String Continue = "Continue";
+
+
 }
