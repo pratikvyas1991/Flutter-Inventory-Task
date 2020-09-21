@@ -126,19 +126,25 @@ class Itemslist {
 }
 
 class Items {
+  int _itemId;
   String _cId;
   String _cFieldName;
   String _cWeight;
   String _roomid;
   String _roomname;
   String _qty;
+  bool _isTabSelected = false;
+  bool _isItemSelected = false;
 
   Items(
-      {String cId,
+      {
+        int itemId,
+        String cId,
       String cFieldName,
       String roomid,
       String roomname,
       String qty}) {
+    this._itemId = itemId;
     this._cId = cId;
     this._cFieldName = cFieldName;
     this._cWeight = cWeight;
@@ -146,6 +152,19 @@ class Items {
     this._roomname = roomname;
     this._qty = qty;
   }
+
+  int get itemId => _itemId;
+
+  set itemId(int itemId) => _itemId = itemId;
+
+  bool get isTabSelected => _isTabSelected;
+
+  set isTabSelected(bool isTabSelected) => _isTabSelected = isTabSelected;
+
+  bool get isItemSelected => _isItemSelected;
+
+  set isItemSelected(bool isItemSelected) => _isItemSelected = isItemSelected;
+
 
   String get qty => _qty;
 
@@ -174,6 +193,7 @@ class Items {
 
 
   Items.fromJson(Map<String, dynamic> json,String roomid,String roomname,String qty) {
+    _itemId = json['item_id'];
     _cId = json['c_id'];
     _cFieldName = json['c_field_name'];
     _cWeight = json['c_weight'];
@@ -182,6 +202,7 @@ class Items {
     _qty = qty ;
   }
   Items.fromJson1(Map<String, dynamic> json) {
+    _itemId = json['item_id'];
     _cId = json['c_id'];
     _cFieldName = json['c_field_name'];
     _cWeight = json['c_weight'];
@@ -192,6 +213,7 @@ class Items {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['item_id'] = this._itemId;
     data['c_id'] = this._cId;
     data['c_field_name'] = this._cFieldName;
     data['c_weight'] = this._cWeight;

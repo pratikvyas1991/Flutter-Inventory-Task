@@ -26,13 +26,16 @@ class MyHomePage extends State<Dashboard> {
   final _formKey = GlobalKey<FormState>();
   List<Items> tempList = new List();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  bool isFirstTime = true;
+
   @override
   void initState() {
     super.initState();
     itemBloc = BlocProvider.of<ItemBloc>(context);
-    itemBloc.add(FetchItemsEvent());
     roomItemBloc = BlocProvider.of<RoomItemBloc>(context);
     carttemBloc = BlocProvider.of<CarttemBloc>(context);
+    itemBloc.add(FetchItemsEvent());
     carttemBloc.add(UpdateRoomItemsEvent());
     checkConnection();
   }
@@ -42,8 +45,13 @@ class MyHomePage extends State<Dashboard> {
       final result = await InternetAddress.lookup('google.com');
       if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
 //        showSnackBar(Strings.ConnectedToInternet);
+        itemBloc.add(FetchItemsFromWebEvent());
+        carttemBloc.add(UpdateRoomItemsEvent());
       }else{
         showSnackBar(Strings.NotConnectedToInternet);
+        print('@@@ Calling from DB ');
+        itemBloc.add(FetchItemsEvent());
+        carttemBloc.add(UpdateRoomItemsEvent());
       }
     } on SocketException catch (_) {
       showSnackBar(Strings.NotConnectedToInternet);
@@ -74,6 +82,7 @@ class MyHomePage extends State<Dashboard> {
 
   @override
   Widget build(BuildContext context) {
+    print("@@@ build() FetchItemsEvent");
     return Material(
       child: Scaffold(
         key: _scaffoldKey,
@@ -216,11 +225,12 @@ class MyHomePage extends State<Dashboard> {
                          key: _formKey,
                          child: Column(
                            children: [
-                             getTabs(),
+                             getSelectedTab(),
                              getCartHeader(),
                              Divider(
                                color: Colors.black26,
                              ),
+//                             getSavedItemListWidgetLocal(),
                              getSavedItemListWidget(),
                              getSaveButton()
                            ],
@@ -250,16 +260,19 @@ class MyHomePage extends State<Dashboard> {
           child: BlocBuilder<CarttemBloc, CartItemState>(
             builder: (context, state) {
               if (state is CarttemInitialState) {
-                return LoadingDialogue();
+                return LoadingDialogue(" Cart ");
               } else if (state is CarttemLoadingState) {
-                return LoadingDialogue();
+                return LoadingDialogue(" Cart ");
               } else if (state is CarttemLoadedState) {
-                if (state.items.length <= 0) {
-                  carttemBloc.add(UpdateRoomItemsEvent());
-                  return LoadingDialogue();
-                } else {
-                  return EditItemList(state.items);
-                }
+                return EditItemList(state.items);
+//                if (state.items.length <= 0) {
+//                  carttemBloc.add(UpdateRoomItemsEvent());
+//                  return LoadingDialogue();
+//                } else {
+//                  return EditItemList(state.items);
+//                }
+              }else if (state is CartTabLoadedState) {
+                return EditItemList(state.items);
               } else if (state is CarttemErrorState) {
                 return ErrorDialogue(state.message);
               }
@@ -279,13 +292,13 @@ class MyHomePage extends State<Dashboard> {
       child: BlocBuilder<RoomItemBloc, RoomItemState>(
         builder: (context, state) {
           if (state is RoomItemInitialState) {
-            return LoadingDialogue();
+            return LoadingDialogue(" Item ");
           } else if (state is RoomItemLoadingState) {
-            return LoadingDialogue();
+            return LoadingDialogue(" Item ");
           } else if (state is RoomItemLoadedState) {
             if (state.items == null || state.items.length <= 0) {
               roomItemBloc.add(FetchRoomItemsEvent(defaultRoomId));
-              return LoadingDialogue();
+              return LoadingDialogue(" Item ");
             } else {
               return buildItemList(state.items);
             }
@@ -312,13 +325,14 @@ class MyHomePage extends State<Dashboard> {
       child: BlocBuilder<ItemBloc, ItemState>(
         builder: (context, state) {
           if (state is ItemInitialState) {
-            return LoadingDialogue();
+            return LoadingDialogue(" Room ");
           } else if (state is ItemLoadingState) {
-            return LoadingDialogue();
+            return LoadingDialogue(" Room ");
           } else if (state is ItemLoadedState) {
             if (state.items != null && state.items.length <= 0) {
+              print("@@@ build() FetchItemsFromWebEvent");
               itemBloc.add(FetchItemsFromWebEvent());
-              return LoadingDialogue();
+              return LoadingDialogue(" Room ");
             } else {
               return buildRoomList(state.items);
             }
@@ -347,8 +361,10 @@ class MyHomePage extends State<Dashboard> {
             onTap: () {
               setState(() {
                 defaultRoomId = items[pos].roomid;
+                isFirstTime = true;
               });
               roomItemBloc.add(FetchRoomItemsEvent(items[pos].roomid));
+              carttemBloc.add(UpdateRoomItemsEvent());
             },
           ),
         );
@@ -433,6 +449,9 @@ class MyHomePage extends State<Dashboard> {
                           carttemBloc.add(UpdateRoomItemsEvent());
                           roomItemBloc
                               .add(FetchRoomItemsEvent(items[pos].roomid));
+                          setState(() {
+                            isFirstTime = true;
+                          });
                         },
                       ),
                     ),
@@ -444,13 +463,13 @@ class MyHomePage extends State<Dashboard> {
               ],
             ),
             onTap: () {
-//              navigateToArticleDetailPage(context, articles[pos]);
             },
           ),
         );
       },
     );
   }
+
   bool isNumeric(String s) {
     if(s == null) {
       return false;
@@ -473,6 +492,10 @@ class MyHomePage extends State<Dashboard> {
               if (qty == 0) {
                 items[pos].qty = (qty + 1).toString();
               }
+              setState(() {
+                tempList.add(items[pos]);
+                isFirstTime = true;
+              });
               carttemBloc.add(UpdateQtyRoomItemsEvent(items[pos]));
               carttemBloc.add(UpdateRoomItemsEvent());
               roomItemBloc.add(FetchRoomItemsEvent(items[pos].roomid));
@@ -503,13 +526,50 @@ class MyHomePage extends State<Dashboard> {
     );
   }
 
-  Widget getTabs() {
+  Widget getSelectedTab() {
     return Container(
-      margin: EdgeInsets.all(5),
-      color: Colors.white,
-      child: Row(
-        children: [getChips()],
-      ),
+        margin: EdgeInsets.all(10),
+        height: 40,
+        child: BlocListener<CarttemBloc, CartItemState>(
+          listener: (context, state) {
+            if (state is ItemErrorState) {
+              print("Error State");
+            }
+          },
+          child: BlocBuilder<CarttemBloc, CartItemState>(
+            builder: (context, state) {
+              if (state is CarttemInitialState) {
+                return LoadingDialogue(" Tab ");
+              } else if (state is CarttemLoadingState) {
+                return LoadingDialogue(" Tab ");
+              } else if (state is CartTabLoadedState) {
+                return getTabs(state.items);
+              }else if (state is CarttemLoadedState) {
+                if(isFirstTime){
+                  isFirstTime = false;
+                  return getTabs(state.items);
+                }
+              } else if (state is CarttemErrorState) {
+                return ErrorDialogue(state.message);
+              }
+            },
+          ),
+        ));
+  }
+
+  Widget getTabs(List<Items> items) {
+    return ListView.separated(
+      scrollDirection: Axis.horizontal,
+      itemCount: items.length,
+      itemBuilder: (context, pos) {
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: getChips(items[pos]),
+        );
+      },
+      separatorBuilder: (context, index) {
+        return Divider();
+      },
     );
   }
 
@@ -564,7 +624,9 @@ class MyHomePage extends State<Dashboard> {
               carttemBloc.add(UpdateRoomItemsEvent());
             });
           }
-
+          setState(() {
+            isFirstTime = true;
+          });
         },
         shape: new RoundedRectangleBorder(
           borderRadius: new BorderRadius.circular(30.0),
@@ -573,28 +635,21 @@ class MyHomePage extends State<Dashboard> {
     );
   }
 
-  Map<Y, List<T>> groupBy<T, Y>(Iterable<T> itr, Y Function(T) fn) {
-    return Map.fromIterable(itr.map(fn).toSet(),
-        value: (i) => itr.where((v) => fn(v) == i).toList());
-  }
-
-
-
-  Widget getChips() {
+  Widget getChips(Items item) {
     return Padding(
       padding: EdgeInsets.only(left: 10.0, right: 0.0),
       child: RaisedButton(
-        color: Colors.teal,
-        child: Text("All Items"),
+        color: item.isItemSelected?Colors.teal:Colors.grey,
+        child: Text(item.roomname),
         onPressed: () {
-//          if(tempList!=null && tempList.length>0){
-//            tempList.forEach((element) {
-//              carttemBloc.add(UpdateQtyRoomItemsEvent(element));
-//              carttemBloc.add(UpdateRoomItemsEvent());
-//            });
-//          }
-          var newMap = groupBy(tempList, (v) => v.length);
-          print(newMap);
+          carttemBloc.add(CartTabEvent(item.roomid));
+          setState(() {
+            if(item.isItemSelected){
+              item.isItemSelected = false;
+            }else{
+              item.isItemSelected = true;
+            }
+          });
 
         },
         shape: new RoundedRectangleBorder(

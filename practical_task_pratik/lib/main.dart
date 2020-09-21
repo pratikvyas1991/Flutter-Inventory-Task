@@ -1,13 +1,8 @@
-import 'dart:ffi';
 import 'package:flutter/material.dart';
-import 'package:practicaltaskpratik/data/item_repository.dart';
-import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter/material.dart';
 import 'package:practicaltaskpratik/bloc/item_bloc.dart';
 import 'package:practicaltaskpratik/data/item_repository.dart';
 import 'package:practicaltaskpratik/ui/dashboard.dart';
-import 'package:practicaltaskpratik/bloc/bloc_delegate.dart';
 
 void main() {
   runApp(MyApp());
@@ -39,19 +34,6 @@ class MyApp extends StatelessWidget {
         ],
         child: Dashboard(),
       ),
-//      home: BlocProvider(
-//        builder: (context) => ItemBloc(repository: ItemRepository()),
-//        child: Dashboard(),
-//      ),
-//
-//      home: MultiBlocProvider(providers: [
-//        BlocProvider<UserListBloc>(
-//          builder: (context) => UserListBloc()..add(GetUsers()),
-//        ),
-//        BlocProvider<UserFormBloc>(
-//          builder: (context) => UserFormBloc(),
-//        ),
-//      ], child: UserListScreen()),
     );
   }
 }

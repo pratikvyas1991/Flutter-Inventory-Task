@@ -33,6 +33,7 @@ class DatabaseProvider {
   void initDB(Database database, int version) async {
     await database.execute(
         "CREATE TABLE $table_name ("
+            "item_id INTEGER PRIMARY KEY,"
             "room_id TEXT, "
             "room_name TEXT, "
             "survey_id TEXT, "

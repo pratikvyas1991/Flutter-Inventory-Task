@@ -115,21 +115,33 @@ class CarttemBloc extends Bloc<CartItemEvent, CartItemState> {
         yield CarttemErrorState(message: e.toString());
       }
     }
-    if (event is UpdateSelectedRoomItemsEvent) {
-      yield CarttemLoadingState();
-      try {
-        List<Items> itenms = await repository.getSelectedSavedItems();
-        yield CarttemLoadedState(items: itenms);
-      } catch (e) {
-        yield CarttemErrorState(message: e.toString());
-      }
-    }
     else
     if (event is UpdateQtyRoomItemsEvent) {
       yield CarttemLoadingState();
       try {
         List<Items> itenms = await repository.updateItem(event.items);
         yield CarttemLoadedState(items: itenms);
+      } catch (e) {
+        yield CarttemErrorState(message: e.toString());
+      }
+    }
+    else
+    if (event is CartTabEvent) {
+      yield CarttemLoadingState();
+      try {
+        List<Items> itenms = await repository.getSelectedSavedItems(event.roomId);
+        yield CartTabLoadedState(items: itenms);
+      } catch (e) {
+        yield CarttemErrorState(message: e.toString());
+      }
+    }
+
+    else
+    if (event is LocalTempRoomItemsEvent) {
+      yield CarttemLoadingState();
+      try {
+        List<Items> itenms = await repository.updateLocalItem(event.items);
+        yield CartLocaltemLoadedState(items: itenms);
       } catch (e) {
         yield CarttemErrorState(message: e.toString());
       }

@@ -101,6 +101,28 @@ class CarttemLoadedState extends CartItemState {
   List<Object> get props => [items];
 }
 
+class CartTabLoadedState extends CartItemState {
+
+  List<Items> items;
+
+  CartTabLoadedState({@required this.items});
+
+  @override
+  // TODO: implement props
+  List<Object> get props => [items];
+}
+
+class CartLocaltemLoadedState extends CartItemState {
+
+  List<Items> items;
+
+  CartLocaltemLoadedState({@required this.items});
+
+  @override
+  // TODO: implement props
+  List<Object> get props => [items];
+}
+
 class CarttemErrorState extends CartItemState {
 
   String message;

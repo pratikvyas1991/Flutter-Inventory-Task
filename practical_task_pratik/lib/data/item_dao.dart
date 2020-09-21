@@ -28,7 +28,6 @@ class ItemDao {
     }
   }
 
-
   Future<List<Items>> getItems({List<String> columns, String query}) async {
     final db = await dbProvider.database;
 
@@ -116,7 +115,18 @@ class ItemDao {
     return items;
   }
 
-  Future<List<Items>> getSelectedSavedItems() async {
+  Future<List<Items>> getSelectedSavedItems(String room_id) async {
+    final db = await dbProvider.database;
+    List<Map<String, dynamic>> result;
+    result = await db.rawQuery("SELECT * FROM Items WHERE Items.qty > 0 AND Items.room_id = "+room_id+" GROUP BY Items.room_id");
+    print(result);
+    List<Items> items = result.isNotEmpty
+        ? result.map((item) => Items.fromJson1(item)).toList()
+        : [];
+    return items;
+  }
+
+  Future<List<Items>> getSelectedSavedRoomsItems() async {
     final db = await dbProvider.database;
     List<Map<String, dynamic>> result;
     result = await db.rawQuery(''
@@ -140,9 +150,13 @@ class ItemDao {
     final db = await dbProvider.database;
 
     var result = await db.update(table_name, item.toJson(),
-        where: 'c_id = ?', whereArgs: [item.cId]);
+        where: 'item_id = ?', whereArgs: [item.itemId]);
 
     return result;
+  }
+
+  List<Items> updateLocalItem(List<Items> item)  {
+    return item;
   }
 
   Future<int> deleteItem(int c_id) async {
